@@ -1,33 +1,37 @@
-     1                                  org 0x7c00      ; Set the origin to 0x7C00
-     2                                  
-     3                                  bits 16         ; Set 16-bit mode
-     4                                  
-     5                                  start:
-     6 00000000 B80000                      mov ax, 0x0000  ; Set up the segments
-     7 00000003 8ED8                        mov ds, ax
-     8 00000005 8EC0                        mov es, ax
-     9                                  
-    10 00000007 BB007C                      mov bx, 0x7c00  ; Set the stack
-    11 0000000A 8ED3                        mov ss, bx
-    12 0000000C BC0010                      mov sp, 0x1000
-    13                                  
-    14 0000000F BB[2300]                    mov bx, buffer  ; Load the file to memory
-    15 00000012 B602                        mov dh, 0x02    ; Drive number
-    16 00000014 B200                        mov dl, 0x00    ; First sector number
-    17 00000016 B500                        mov ch, 0x00    ; Cylinder number
-    18 00000018 B102                        mov cl, 0x02    ; Sector number
-    19 0000001A B402                        mov ah, 0x02    ; Read sector function
-    20 0000001C CD13                        int 0x13        ; BIOS interrupt
-    21                                  
-    22 0000001E EA0000[2300]                jmp buffer:0x0000  ; Jump to the loaded code
+     1                                  section .text
+     2                                      global _start
+     3                                  
+     4                                  _start:
+     5                                      ; Set up registers for BIOS interrupt
+     6 00000000 B40E                        mov ah, 0x0E        ; BIOS interrupt: teletype output
+     7                                  
+     8                                      ; Print 'R'
+     9 00000002 B052                        mov al, 'R'
+    10 00000004 CD10                        int 0x10
+    11                                  
+    12                                      ; Print 'E'
+    13 00000006 B045                        mov al, 'E'
+    14 00000008 CD10                        int 0x10
+    15                                  
+    16                                      ; Print 'N'
+    17 0000000A B04E                        mov al, 'N'
+    18 0000000C CD10                        int 0x10
+    19                                  
+    20                                      ; Print 'O'
+    21 0000000E B04F                        mov al, 'O'
+    22 00000010 CD10                        int 0x10
     23                                  
-    24                                  buffer:
-    25 00000023 00<rep 7BDDh>               times 0x7c00-($-$$) db 0  ; Fill up to 0x7C00 with zeros
-    26                                      main_bin:
-    27 00007C00 56                                    db 0b01010110  ; Binary content of main.bin
-    28 00007C01 AC                                    db 0b10101100
-    29 00007C02 F0                                    db 0b11110000
-    30                                                ; Add more binary data as needed
+    24                                      ; Print 'S'
+    25 00000012 B053                        mov al, 'S'
+    26 00000014 CD10                        int 0x10
+    27                                  
+    28                                      ; Move cursor to the beginning of the next line
+    29 00000016 B40A                        mov ah, 0x0A
+    30 00000018 CD10                        int 0x10
     31                                  
-    32                                  
-    33 00007C03 55AA                    dw 0xAA55                ; Boot signature
+    32                                      ; Infinite loop to prevent the program from exiting
+    33 0000001A EBFE                        jmp $
+    34                                  
+    35                                      ; Padding to reach the boot sector size of 512 bytes
+    36 0000001C 00<rep 1E2h>                times 510 - ($ - $$) db 0
+    37 000001FE 55AA                        dw 0xAA55           ; Boot signature
